@@ -30,18 +30,24 @@ class UserController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
-    {
-       //dd($request->all());
-        $data['name'] = $request->name;
-		$data['password'] =Hash::make($request->password);
-		$data['email'] = $request->email;
-        $data['confirm_password'] = $request->confirm_password;
+public function store(Request $request)
+{
+    $request->validate([
+        'name' => 'required|string|max:100',
+        'email' => 'required|email|unique:users,email',
+        'password' => 'required|min:5|confirmed',
+    ]);
 
-		User::create($data);
+    User::create([
+        'name' => $request->name,
+        'email' => $request->email,
+        'password' => bcrypt($request->password),
+    ]);
 
-		return redirect()->route('user.index')->with('success','Penambahan Data Berhasil!');
-    }
+    return redirect()->route('user.index')->with('success', 'User berhasil ditambahkan!');
+}
+
+
 
     /**
      * Display the specified resource.
@@ -63,20 +69,26 @@ class UserController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
-    {
-        $user_id = $id;
-        $user = User::findOrFail($user_id);
+public function update(Request $request, $id)
+{
+    $request->validate([
+        'name' => 'required|string|max:100',
+        'email' => 'required|email|unique:users,email,' . $id,
+        'password' => 'nullable|min:5|confirmed',
+    ]);
 
-        $user->name = $request->name;
-        $user->password = $request->password;
-        $user->email = $request->email;
-        $user->confirm_password = $request->confirm_password;
+    $user = User::findOrFail($id);
+    $user->name = $request->name;
+    $user->email = $request->email;
 
-        $user->save();
-
-        return redirect()->route('user.index')->with('success', 'Perubahan Data Berhasil!');
+    if ($request->filled('password')) {
+        $user->password = bcrypt($request->password);
     }
+
+    $user->save();
+
+    return redirect()->route('user.index')->with('success', 'Data user berhasil diperbarui!');
+}
 
     /**
      * Remove the specified resource from storage.
