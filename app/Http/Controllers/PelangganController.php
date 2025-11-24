@@ -11,18 +11,20 @@ class PelangganController extends Controller
     /**
      * Display a listing of the resource.
      */
-public function index(Request $request)
-{
-    $filterableColumns = ['gender'];
+    public function index(Request $request)
+    {
+        $filterableColumns = ['gender'];
 
-    $searchableColumns = ['first_name','last_name','email'];
+        $searchableColumns = ['first_name', 'last_name', 'email'];
 
-    $pageData['dataPelanggan'] = Pelanggan::filter($request, $filterableColumns)
-                                    ->paginate(10)
-                                    ->withQueryString();
+        $pageData['dataPelanggan'] = Pelanggan::filter($request, $filterableColumns)
+            ->search($request, $searchableColumns)
+            ->paginate(10)
+            ->withQueryString();
 
-    return view('admin.pelanggan.index', $pageData);
-}
+
+        return view('admin.pelanggan.index', $pageData);
+    }
 
 
     /**
@@ -30,7 +32,7 @@ public function index(Request $request)
      */
     public function create()
     {
-		return view('admin.pelanggan.create');
+        return view('admin.pelanggan.create');
     }
 
     /**
@@ -38,17 +40,17 @@ public function index(Request $request)
      */
     public function store(Request $request)
     {
-       //dd($request->all());
+        //dd($request->all());
         $data['first_name'] = $request->first_name;
-		$data['last_name'] = $request->last_name;
-		$data['birthday'] = $request->birthday;
-		$data['gender'] = $request->gender;
-		$data['email'] = $request->email;
-		$data['phone'] = $request->phone;
+        $data['last_name'] = $request->last_name;
+        $data['birthday'] = $request->birthday;
+        $data['gender'] = $request->gender;
+        $data['email'] = $request->email;
+        $data['phone'] = $request->phone;
 
-		Pelanggan::create($data);
+        Pelanggan::create($data);
 
-		return redirect()->route('pelanggan.index')->with('success','Penambahan Data Berhasil!');
+        return redirect()->route('pelanggan.index')->with('success', 'Penambahan Data Berhasil!');
     }
 
     /**
