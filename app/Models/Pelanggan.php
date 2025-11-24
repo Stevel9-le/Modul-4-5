@@ -35,5 +35,6 @@ class Pelanggan extends Model
                 }
             });
         }
+        return $query;
     }
 }
