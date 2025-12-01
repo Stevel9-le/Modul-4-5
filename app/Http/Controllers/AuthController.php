@@ -2,57 +2,53 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class AuthController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
     public function index()
     {
-        //
+        return view('auth.login');
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-         return view('login');
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
     public function login(Request $request)
     {
-        //dd($request->all()); 
-       $request->validate([
-        'username' => 'required',
-        'password' => ['required','min:3','regex:/[A-Z]/'],
-        
-    ], [
-        'username.required'=>'username tidak boleh kosong',
-        'password.required'=>'password tidak boleh kosong',
-        'password.min'=>'password minimal 3 karakter',
-        'password.regex' => 'Password harus mengandung huruf kapital.',
-    ]);
-        $username = $request->username;
-        $password = $request->password;
+        $input = $request->validate([
+            'email' => 'required|email',
+            'password' => 'required',
+        ]);
 
-        if ($username === 'Steven' && $password === 'Anakbaik') {
-            return view('login')->with('success', 'Selamat datang, ' . $username . '!');
-        } else {
-            return redirect()->back()->with('error', 'Username atau password salah, silakan coba lagi.');
+        if (Auth::attempt($input)) {
+            $request->session()->regenerate();
+
+            // Cek Role User yang sedang login
+            if (Auth()->user()->hasRole('admin')) {
+                return redirect()->intended('/admin/dashboard'); // Arahkan Admin
+            }
+
+            // Jika bukan admin
+            return redirect()->intended('/dashboard'); // Arahkan User Biasa
         }
-        return view('home', compact('username', 'last_login'));
-        
+
+        // Jika Login Gagal
+        return back()->withErrors([
+            'email' => 'Email atau password salah.',
+        ]);
     }
 
-    /**
-     * Display the specified resource.
-     */
+    // 3. Proses Logout
+    public function logout(Request $request)
+    {
+        Auth::logout();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect('/');
+    }
+
     public function show(string $id)
     {
         //
